@@ -47,6 +47,10 @@ airflow users create \
     --email admin@example.com \
     --password admin || echo "Admin user already exists"
 
+# Sync roles/perms immediately so the webserver can see them
+echo "Syncing Airflow FAB permissions..."
+airflow sync-perm
+
 # Start webserver in background (no --daemon to keep it as a child process),
 # then run scheduler in foreground so Docker tracks the container's main process.
 echo "Starting Airflow webserver and scheduler..."

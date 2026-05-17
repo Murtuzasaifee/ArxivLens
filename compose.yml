@@ -93,6 +93,10 @@ services:
       # migration code (core/sql_alchemy_conn → database/sql_alchemy_conn).
       # Our env var AIRFLOW__DATABASE__SQL_ALCHEMY_CONN is already correct.
       - PYTHONWARNINGS=ignore::FutureWarning:airflow,ignore::DeprecationWarning:airflow
+      # UPDATE_FAB_PERMS=False: skip the slow perm sync inside gunicorn workers.
+      # entrypoint.sh runs `airflow sync-perm` once before the webserver starts,
+      # so permissions are already in Neon when gunicorn boots — no sync needed.
+      - AIRFLOW__WEBSERVER__UPDATE_FAB_PERMS=False
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - airflow_logs:/opt/airflow/logs
@@ -105,7 +109,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 120s
+      start_period: 300s
     networks:
       - rag-network
 
