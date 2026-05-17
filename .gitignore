@@ -178,5 +178,12 @@ data/
 test_output/
 test_data/
 
-
+## Custom ignores
+notebooks/
+static/
+workflows/
+enhancements.txt
+gradio_launcher.py
+step-by-step.md
+README.md
 
