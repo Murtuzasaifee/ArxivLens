@@ -1,10 +1,11 @@
 """Quick connectivity check for all external APIs."""
 
-from openai.types import completion_usage
 import asyncio
-import sys
 import socket
+import sys
 from pathlib import Path
+
+from openai.types import completion_usage
 
 # Allow running from project root
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -31,6 +32,7 @@ async def check_openai(settings):
 
 async def check_postgres(settings):
     import asyncio
+
     from sqlalchemy import create_engine, text
     engine = create_engine(settings.postgres_database_url, pool_pre_ping=True, connect_args={"connect_timeout": 10})
     with engine.connect() as conn:

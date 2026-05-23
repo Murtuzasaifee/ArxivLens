@@ -48,6 +48,10 @@ class ArxivSettings(BaseConfigSettings):
     @field_validator("pdf_cache_dir")
     @classmethod
     def validate_cache_dir(cls, v: str) -> str:
+        path = Path(v)
+        if not path.is_absolute():
+            path = PROJECT_ROOT / path
+            v = str(path.resolve())
         os.makedirs(v, exist_ok=True)
         return v
 
