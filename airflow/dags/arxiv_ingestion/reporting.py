@@ -2,8 +2,6 @@ import json
 import logging
 from datetime import datetime
 
-from .common import get_cached_services
-
 logger = logging.getLogger(__name__)
 
 
@@ -22,8 +20,15 @@ def generate_daily_report(**context):
     fetch_stats = ti.xcom_pull(task_ids="fetch_daily_papers", key="fetch_results") or {}
     hybrid_stats = ti.xcom_pull(task_ids="index_papers_hybrid", key="hybrid_index_stats") or {}
 
+    # Robust execution date parsing (Airflow 2.x logical_date compatibility)
+    execution_date_val = context.get("execution_date") or context.get("logical_date") or datetime.now()
+    if hasattr(execution_date_val, "isoformat"):
+        execution_date_str = execution_date_val.isoformat()
+    else:
+        execution_date_str = str(execution_date_val)
+
     report = {
-        "execution_date": context.get("execution_date", datetime.now()).isoformat(),
+        "execution_date": execution_date_str,
         "fetch_statistics": {
             "papers_fetched": fetch_stats.get("papers_fetched", 0),
             "papers_stored": fetch_stats.get("papers_stored", 0),
@@ -39,7 +44,13 @@ def generate_daily_report(**context):
     }
 
     try:
-        _arxiv_client, _pdf_parser, database, _metadata_fetcher, opensearch_client = get_cached_services()
+        # Import factories inside task to avoid importing heavy dependencies (docling, torch)
+        # during DAG parsing by the Airflow scheduler.
+        from src.db.factory import make_database
+        from src.services.opensearch.factory import make_opensearch_client
+
+        database = make_database()
+        opensearch_client = make_opensearch_client()
 
         with database.get_session() as session:
             from sqlalchemy import func
@@ -68,8 +79,14 @@ def generate_daily_report(**context):
         logger.error(f"Failed to get statistics: {e}")
         report["error"] = str(e)
 
+    # Safe json serialization helper
+    def default_serializer(obj):
+        if hasattr(obj, "isoformat"):
+            return obj.isoformat()
+        return str(obj)
+
     logger.info("Daily Ingestion Report:")
-    logger.info(json.dumps(report, indent=2))
+    logger.info(json.dumps(report, indent=2, default=default_serializer))
 
     ti.xcom_push(key="daily_report", value=report)
 
