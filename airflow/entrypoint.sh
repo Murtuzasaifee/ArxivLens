@@ -37,6 +37,10 @@ fi
 echo "Initializing Airflow database..."
 airflow db migrate
 
+# Sync FAB permissions FIRST so roles (Admin, Viewer, etc.) exist before user create.
+echo "Syncing Airflow FAB permissions..."
+airflow sync-perm
+
 # Create admin user (idempotent — skips silently if already exists)
 echo "Creating admin user..."
 airflow users create \
@@ -46,10 +50,6 @@ airflow users create \
     --role Admin \
     --email admin@example.com \
     --password admin || echo "Admin user already exists"
-
-# Sync roles/perms immediately so the webserver can see them
-echo "Syncing Airflow FAB permissions..."
-airflow sync-perm
 
 # Start webserver in background (no --daemon to keep it as a child process),
 # then run scheduler in foreground so Docker tracks the container's main process.
