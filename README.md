@@ -1,14 +1,32 @@
 # ArxivLens: Agentic RAG for Academic Research
 
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.12+-blue.svg" alt="Python Version">
+  <img src="https://img.shields.io/badge/FastAPI-0.115+-green.svg" alt="FastAPI">
+  <img src="https://img.shields.io/badge/OpenSearch-2.19.5-orange.svg" alt="OpenSearch">
+  <img src="https://img.shields.io/badge/LLM%20Provider-MeshAPI-blueviolet.svg" alt="LLM Provider">
+  <img src="https://img.shields.io/badge/Model-openai%2Fgpt--5.4-blue.svg" alt="LLM Model">
+  <img src="https://img.shields.io/badge/Cache-Upstash%20Redis-red.svg" alt="Upstash Redis">
+  <img src="https://img.shields.io/badge/Telemetry-Langfuse-purple.svg" alt="Langfuse Telemetry">
+  <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
+</p>
+
+<br>
+
 ArxivLens is a production-grade, agentic RAG (Retrieval-Augmented Generation) system designed to automate the ingestion, parsing, indexing, and conversational analysis of academic papers from arXiv. 
 
 Built with **FastAPI**, **Apache Airflow**, **OpenSearch**, and **LangGraph**, ArxivLens transitions traditional search into an intelligent research assistant. It features hybrid (BM25 + vector) search, relevance grading, automatic query rewriting, caching, observability tracing, and dual client interfaces (Gradio Web UI and Telegram Bot).
+
+> [!IMPORTANT]
+> **🚀 Featured: Powered by MeshAPI**  
+> ArxivLens is integrated with **MeshAPI** as its primary LLM backend. By using MeshAPI's OpenAI-compatible router at `https://api.meshapi.ai/v1`, the system routes LLM requests to advanced next-generation models (e.g. `openai/gpt-5.4`) using the standard `openai` library—without changing a single line of orchestration code.
 
 ---
 
 ## 🚀 Key Capabilities
 
 - **State-Based Agentic Retrieval** — Orchestrated via LangGraph with input guardrails, document relevance grading, and adaptive multi-attempt query rewriting.
+- **MeshAPI Core Integration** — Uses MeshAPI's OpenAI-compatible router to dynamically execute logic against advanced next-gen LLMs (e.g. `openai/gpt-5.4`) without client code modifications.
 - **Hybrid Search Engine** — Combines BM25 keyword matching with Jina AI semantic vector embeddings (`jina-embeddings-v3`, 1024-dim) combined using Reciprocal Rank Fusion (RRF).
 - **Automated Processing Pipeline** — Scheduled Airflow DAGs that harvest papers, parse PDFs into markdown structure using Docling, and populate the databases.
 - **Production Observability & Tracing** — Complete execution path tracking (latency, token usage, prompts, cost) using Langfuse Cloud.
@@ -48,7 +66,7 @@ graph TD
     subgraph API_Services ["API & Agentic Query Layer"]
         FastAPI["FastAPI App<br>(REST API & Endpoints)"]:::service
         LangGraph["LangGraph Engine<br>(Agentic State Machine)"]:::service
-        OpenAI["OpenAI API<br>(gpt-4o-mini generation)"]:::external
+        MeshAPI["MeshAPI Endpoint<br>(OpenAI-Compatible LLM)"]:::external
         Redis["Upstash Redis<br>(Exact-Match Cache)"]:::db
         Langfuse["Langfuse Cloud<br>(Tracing & Observability)"]:::external
     end
@@ -72,7 +90,7 @@ graph TD
     FastAPI -->|Record Traces| Langfuse
     FastAPI -->|Execute Agent| LangGraph
     LangGraph -->|Retrieve Context| OpenSearch
-    LangGraph -->|Generate Responses| OpenAI
+    LangGraph -->|Generate Responses| MeshAPI
 ```
 
 ---
@@ -212,8 +230,8 @@ stateDiagram-v2
     
     state GenerateAnswer {
         [*] --> ConstructPrompt
-        ConstructPrompt --> CallOpenAI
-        CallOpenAI --> FormatResponse
+        ConstructPrompt --> CallMeshAPI
+        CallMeshAPI --> FormatResponse
     }
     
     GenerateAnswer --> [*] : Return final response with citations
@@ -230,7 +248,7 @@ stateDiagram-v2
 ### 4. Caching & Tracing Performance Layer
 Queries are monitored and optimized for performance:
 
-- **Upstash Redis Caching**: Incoming queries are hashed. Cache hits bypass the LangGraph state machine and the OpenAI API completely, returning the cached response in <10ms. A 6-hour Time-to-Live (TTL) is applied to all keys.
+- **Upstash Redis Caching**: Incoming queries are hashed. Cache hits bypass the LangGraph state machine and the MeshAPI call completely, returning the cached response in <10ms. A 6-hour Time-to-Live (TTL) is applied to all keys.
 - **Langfuse Tracing**: Traces every pipeline node, monitoring LLM latency, token counts, and input/output payloads. This provides complete cost and error visibility in production.
 
 ---
@@ -243,7 +261,7 @@ Queries are monitored and optimized for performance:
 - **UV Package Manager** ([Installation Guide](https://docs.astral.sh/uv/getting-started/installation/))
 
 ### Cloud Accounts Needed (Free Tiers)
-1. **OpenAI** — For LLM generation and evaluation ([console](https://platform.openai.com))
+1. **MeshAPI** (or OpenAI) — For OpenAI-compatible LLM generation and evaluation (using `https://api.meshapi.ai/v1`)
 2. **Jina AI** — For 1024-dim dense embeddings ([console](https://jina.ai))
 3. **Neon PostgreSQL** — Serverless PostgreSQL database ([console](https://console.neon.tech))
 4. **Upstash** — Serverless Redis cache ([console](https://console.upstash.com))
@@ -264,7 +282,9 @@ Queries are monitored and optimized for performance:
    Create a `.env` file in the root directory. Use the template below (refer to [step-by-step.md](step-by-step.md) for details):
    ```env
    # LLM & Embedding API Keys
-   OPENAI_API_KEY=your-openai-api-key
+   OPENAI_API_KEY=your-meshapi-api-key
+   OPENAI_BASE_URL="https://api.meshapi.ai/v1"
+   OPENAI_MODEL="openai/gpt-5.4"
    JINA_API_KEY=your-jina-api-key
 
    # Neon Serverless PostgreSQL
@@ -418,7 +438,7 @@ docker compose down --volumes && docker compose up --build -d
 - **Upstash Redis**: Free (10,000 commands/day allocation).
 - **Langfuse Cloud**: Free (50,000 trace events/month allocation).
 - **Jina AI Embeddings**: Free tier contains generous token limits.
-- **OpenAI API**: Pay-as-you-go.
+- **LLM API (MeshAPI)**: Pay-as-you-go. A query using the configured model with 3 chunk contexts of 1,800 tokens is highly cost-effective (e.g. less than **$0.0008**). When Redis hits a cache match, the operational cost is **$0**.
 
 ---
 
