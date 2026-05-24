@@ -24,6 +24,7 @@ class OllamaClient:
     def get_langchain_model(self, model: str, temperature: float = 0.0):
         """Return a LangChain ChatOllama instance for use in agent nodes."""
         from langchain_ollama import ChatOllama
+
         # reasoning=False disables Qwen3's thinking mode (<think>...</think> tokens).
         # Without this, Qwen3 generates internal reasoning before every response,
         # adding 60-120s of latency and breaking structured output parsing.
@@ -133,9 +134,8 @@ class OllamaClient:
 
                     # Calculate total tokens
                     if usage_metadata:
-                        usage_metadata["total_tokens"] = (
-                            usage_metadata.get("prompt_tokens", 0) +
-                            usage_metadata.get("completion_tokens", 0)
+                        usage_metadata["total_tokens"] = usage_metadata.get("prompt_tokens", 0) + usage_metadata.get(
+                            "completion_tokens", 0
                         )
 
                     # Parse timing information (convert nanoseconds to milliseconds)

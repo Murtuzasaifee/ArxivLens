@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 class AgenticRAGService:
-    """Agentic RAG service 
+    """Agentic RAG service
 
     This implementation uses:
     - context_schema for dependency injection
@@ -409,8 +409,7 @@ class AgenticRAGService:
             logger.error(f"Failed to generate visualization - missing dependencies: {e}")
             logger.error("Install with: pip install pygraphviz or apt-get install graphviz")
             raise ImportError(
-                "Graph visualization requires pygraphviz. "
-                "Install with: pip install pygraphviz (requires graphviz system package)"
+                "Graph visualization requires pygraphviz. Install with: pip install pygraphviz (requires graphviz system package)"
             ) from e
         except Exception as e:
             logger.error(f"Failed to generate graph visualization: {e}")

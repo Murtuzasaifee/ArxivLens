@@ -188,9 +188,7 @@ class TelegramBot:
             answer = rag_response.get("answer", "") if rag_response else ""
 
             # Build response
-            response = AskResponse(
-                query=query, answer=answer, sources=sources, chunks_used=len(chunks), search_mode="hybrid"
-            )
+            response = AskResponse(query=query, answer=answer, sources=sources, chunks_used=len(chunks), search_mode="hybrid")
 
             # Cache it
             if self.cache:
