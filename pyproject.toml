@@ -52,6 +52,10 @@ dev = [
 viz = [
     "grandalf>=0.8",
 ]
+prefect = [
+    "prefect>=3.0.0",
+]
+
 
 [tool.ruff]
 line-length = 130

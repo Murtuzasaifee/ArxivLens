@@ -114,12 +114,60 @@ services:
       timeout: 10s
       retries: 3
       start_period: 300s
+    profiles:
+      - airflow
+    networks:
+      - rag-network
+
+  # Prefect Server (UI + REST API)
+  prefect-server:
+    image: prefecthq/prefect:3-python3.12
+    container_name: rag-prefect-server
+    command: prefect server start --host 0.0.0.0 --port 4200
+    ports:
+      - "4200:4200"
+    volumes:
+      - prefect_data:/root/.prefect
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4200/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    profiles:
+      - prefect
+    networks:
+      - rag-network
+
+  # Prefect Worker (runs the flow, listens for scheduled/manual runs)
+  prefect-worker:
+    build:
+      context: ./prefect
+      dockerfile: Dockerfile
+    container_name: rag-prefect-worker
+    depends_on:
+      prefect-server:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - PREFECT_API_URL=http://prefect-server:4200/api
+      - PYTHONPATH=/app
+      - OPENSEARCH__HOST=http://opensearch:9200
+    volumes:
+      - ./src:/app/src
+      - ./prefect/flows:/app/flows
+    profiles:
+      - prefect
     networks:
       - rag-network
 
 volumes:
   opensearch_data:
   airflow_logs:
+  prefect_data:
 
 networks:
   rag-network:
