@@ -41,7 +41,5 @@ async def client():
         patch("src.main.make_telegram_service", return_value=None),
     ):
         async with LifespanManager(app) as manager:
-            async with AsyncClient(
-                transport=ASGITransport(app=manager.app), base_url="http://test"
-            ) as client:
+            async with AsyncClient(transport=ASGITransport(app=manager.app), base_url="http://test") as client:
                 yield client

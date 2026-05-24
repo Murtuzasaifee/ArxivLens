@@ -115,10 +115,7 @@ async def ainvoke_guardrail_step(
         logger.error(f"LLM guardrail validation failed: {e}, falling back to default")
 
         # Fallback: fail open — let query through when LLM can't evaluate
-        response = GuardrailScoring(
-            score=100,
-            reason=f"LLM validation failed, defaulting to allow: {str(e)}"
-        )
+        response = GuardrailScoring(score=100, reason=f"LLM validation failed, defaulting to allow: {str(e)}")
 
         # Update span with error
         if span:
