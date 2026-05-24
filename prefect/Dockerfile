@@ -9,17 +9,11 @@ ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_PYTHON_DOWNLOADS=never
 
-# ── Create venv and pre-install CPU-only PyTorch ──────────────────────────────
+# ── Create venv and sync all project dependencies + prefect group ─────────────
+# Note: torch is installed from PyPI (default index) which has native ARM64
+# wheels. The whl/cpu index only has x86-64 wheels and breaks on Apple Silicon.
 RUN uv venv /app/.venv
 
-# Install torch from the CPU wheel index inside the virtualenv so
-# uv sync sees it satisfied and doesn't fetch the CUDA version.
-RUN --mount=type=cache,target=/root/.cache/uv \
-    .venv/bin/pip install \
-    torch torchvision torchaudio \
-    --index-url https://download.pytorch.org/whl/cpu
-
-# ── Sync all project dependencies + prefect group ─────────────────────────────
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --group prefect
 
@@ -39,7 +33,7 @@ WORKDIR /app
 
 # Copy the virtual environment and source code from base
 COPY --from=base /app /app
-COPY flows/ /app/flows/
+COPY prefect/flows/ /app/flows/
 
 # Add virtual environment to PATH
 ENV PATH="/app/.venv/bin:$PATH"

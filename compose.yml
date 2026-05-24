@@ -142,9 +142,10 @@ services:
   # Prefect Worker (runs the flow, listens for scheduled/manual runs)
   prefect-worker:
     build:
-      context: ./prefect
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: prefect/Dockerfile
     container_name: rag-prefect-worker
+
     depends_on:
       prefect-server:
         condition: service_healthy
