@@ -74,7 +74,6 @@ if __name__ == "__main__":
     # .serve() registers a deployment on the Prefect server and blocks,
     # listening for scheduled + manual runs.
     schedule_cron = os.getenv("PREFECT__SCHEDULE", "0 6 * * 1-5")
-    logger = get_run_logger() if sys.modules.get("prefect") else logging.getLogger(__name__)
 
     # Simple direct running if serving or run directly
     print(f"Starting Prefect deployment serve with cron schedule: {schedule_cron}")
@@ -82,3 +81,4 @@ if __name__ == "__main__":
         name="arxiv-ingestion-daily",
         cron=schedule_cron,
     )
+
