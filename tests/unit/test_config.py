@@ -34,5 +34,5 @@ def test_settings_openai_defaults():
     """Test OpenAI default configuration."""
     settings = Settings()
 
-    assert settings.openai_model == "gpt-4o-mini"
+    assert settings.openai_model == "openai/gpt-5.4-mini"
     assert settings.openai_timeout == 300

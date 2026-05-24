@@ -9,7 +9,7 @@ class AskRequest(BaseModel):
     query: str = Field(..., description="User's question", min_length=1, max_length=1000)
     top_k: int = Field(3, description="Number of top chunks to retrieve", ge=1, le=10)
     use_hybrid: bool = Field(True, description="Use hybrid search (BM25 + vector)")
-    model: str = Field("gpt-4o-mini", description="OpenAI model to use for generation")
+    model: str = Field("openai/gpt-5.4-mini", description="OpenAI model to use for generation")
     categories: Optional[List[str]] = Field(None, description="Filter by arXiv categories")
 
     class Config:
@@ -18,7 +18,7 @@ class AskRequest(BaseModel):
                 "query": "What are transformers in machine learning?",
                 "top_k": 3,
                 "use_hybrid": True,
-                "model": "gpt-4o-mini",
+                "model": "openai/gpt-5.4-mini",
                 "categories": ["cs.AI", "cs.LG"],
             }
         }
@@ -41,7 +41,7 @@ class AskResponse(BaseModel):
                 "sources": ["https://arxiv.org/pdf/1706.03762.pdf", "https://arxiv.org/pdf/1810.04805.pdf"],
                 "chunks_used": 3,
                 "search_mode": "hybrid",
-                "model": "gpt-4o-mini",
+                "model": "openai/gpt-5.4-mini",
             }
         }
 

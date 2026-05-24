@@ -23,7 +23,7 @@ class GraphConfig(BaseModel):
 
     max_retrieval_attempts: int = 2
     guardrail_threshold: int = 40
-    model: str = "gpt-4o-mini"
+    model: str = "openai/gpt-5.4-mini"
     temperature: float = 0.0
     top_k: int = 3
     use_hybrid: bool = True

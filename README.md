@@ -375,7 +375,7 @@ Agentic-RAG-project/
 |----------|--------|----------------|---------|
 | `/api/v1/health` | GET | None | Checks connectivity to PostgreSQL, OpenSearch, and Redis. |
 | `/api/v1/hybrid-search/` | POST | JSON: `{ "query": "str", "top_k": 3, "use_hybrid": true }` | Retrieves matching paper chunks using BM25 or Hybrid Search. |
-| `/api/v1/ask` | POST | JSON: `{ "query": "str", "model": "gpt-4o-mini" }` | Returns a standard, synchronous RAG response. |
+| `/api/v1/ask` | POST | JSON: `{ "query": "str", "model": "openai/gpt-5.4-mini" }` | Returns a standard, synchronous RAG response. |
 | `/api/v1/stream` | POST | JSON: `{ "query": "str" }` | Streams a RAG response in real-time using Server-Sent Events (SSE). |
 | `/api/v1/ask-agentic` | POST | JSON: `{ "query": "str" }` | Routes the query through the LangGraph agent workflow. |
 | `/api/v1/feedback` | POST | JSON: `{ "trace_id": "str", "score": 1 }` | Logs user feedback directly to Langfuse. |

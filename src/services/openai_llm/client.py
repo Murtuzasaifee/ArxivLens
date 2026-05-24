@@ -61,7 +61,7 @@ class OpenAILLMClient:
         self,
         query: str,
         chunks: List[Dict[str, Any]],
-        model: str = "gpt-4o-mini",
+        model: str = "openai/gpt-5.4-mini",
         **kwargs,
     ) -> Dict[str, Any]:
         """Generate a RAG answer using retrieved chunks via OpenAI chat completions."""
@@ -126,7 +126,7 @@ class OpenAILLMClient:
         self,
         query: str,
         chunks: List[Dict[str, Any]],
-        model: str = "gpt-4o-mini",
+        model: str = "openai/gpt-5.4-mini",
     ):
         """Stream a RAG answer using OpenAI streaming chat completions."""
         try:

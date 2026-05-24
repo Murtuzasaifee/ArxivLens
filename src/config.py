@@ -167,7 +167,7 @@ class Settings(BaseConfigSettings):
     postgres_max_overflow: int = 0
 
     openai_api_key: str = ""
-    openai_model: str = "gpt-4o-mini"
+    openai_model: str = "openai/gpt-5.4-mini"
     openai_timeout: int = 300
     openai_base_url: Optional[str] = None
 
