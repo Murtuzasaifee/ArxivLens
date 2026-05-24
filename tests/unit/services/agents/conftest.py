@@ -48,7 +48,7 @@ def test_context(mock_opensearch_client, mock_llm_client, mock_jina_embeddings_c
         embeddings_client=mock_jina_embeddings_client,
         langfuse_tracer=None,
         langfuse_enabled=False,
-        model_name="gpt-4o-mini",
+        model_name="openai/gpt-5.4-mini",
         temperature=0.0,
         top_k=3,
         max_retrieval_attempts=2,

@@ -13,7 +13,7 @@ from src.services.agents.models import GuardrailScoring
 def test_service(mock_opensearch_client, mock_llm_client, mock_jina_embeddings_client):
     """Create AgenticRAGService with mocked dependencies."""
     config = GraphConfig(
-        model="gpt-4o-mini",
+        model="openai/gpt-5.4-mini",
         temperature=0.0,
         top_k=3,
         use_hybrid=True,
@@ -42,7 +42,7 @@ class TestAgenticRAGServiceInitialization:
 
     def test_graph_config_values(self, test_service):
         """Test graph configuration values."""
-        assert test_service.graph_config.model == "gpt-4o-mini"
+        assert test_service.graph_config.model == "openai/gpt-5.4-mini"
         assert test_service.graph_config.top_k == 3
         assert test_service.graph_config.use_hybrid is True
         assert test_service.graph_config.max_retrieval_attempts == 2

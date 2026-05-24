@@ -33,7 +33,7 @@ class Context:
     langfuse_tracer: Optional[LangfuseTracer]
     trace: Optional["LangfuseSpan"] = None
     langfuse_enabled: bool = False
-    model_name: str = "gpt-4o-mini"
+    model_name: str = "openai/gpt-5.4-mini"
     temperature: float = 0.0
     top_k: int = 3
     max_retrieval_attempts: int = 2

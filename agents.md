@@ -10,7 +10,7 @@ This document is a compressed reference map of the ArxivLens repository, designe
 * **Database (Relational):** Neon Serverless PostgreSQL stores raw paper metadata and parsed content.
 * **Vector & Text Search:** OpenSearch (local Docker container) hosts text chunks and Jina embeddings.
 * **Embeddings Model:** Jina AI `jina-embeddings-v2-base-de` (1024 dimensions, cosine similarity).
-* **LLM Model:** OpenAI `gpt-4o-mini` (or standard model overridden via env).
+* **LLM Model:** OpenAI `openai/gpt-5.4-mini` (or standard model overridden via env).
 * **State-Based Agentic RAG:** Built with LangGraph, injecting dependencies via runtime context.
 * **Observability:** Langfuse Cloud traces execution spans and token metrics.
 * **Cache:** Upstash Redis caches endpoint queries (SHA-256 payload keys).
