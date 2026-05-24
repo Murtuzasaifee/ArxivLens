@@ -128,6 +128,9 @@ services:
       - "4200:4200"
     volumes:
       - prefect_data:/root/.prefect
+    environment:
+      # Show all log levels in the Prefect UI (default is INFO)
+      - PREFECT_LOGGING_LEVEL=DEBUG
     healthcheck:
       test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:4200/api/health')\""]
       interval: 10s
@@ -157,6 +160,10 @@ services:
       - PREFECT_API_URL=http://prefect-server:4200/api
       - PYTHONPATH=/app
       - OPENSEARCH__HOST=http://opensearch:9200
+      # Emit all log levels from flow/task runs (default is INFO)
+      - PREFECT_LOGGING_LEVEL=DEBUG
+      # Capture logs from third-party libs used inside tasks
+      - PREFECT_LOGGING_EXTRA_LOGGERS=docling,opensearch,httpx,sqlalchemy,urllib3
     volumes:
       - ./src:/app/src
       - ./prefect/flows:/app/flows

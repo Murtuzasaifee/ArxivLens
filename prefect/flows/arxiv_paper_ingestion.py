@@ -24,37 +24,51 @@ from src.pipelines.ingestion.shared import (
 @task(name="setup-environment", retries=2, retry_delay_seconds=60)
 def setup_environment_task():
     logger = get_run_logger()
+    logger.debug("[setup-environment] task started")
     logger.info("Setting up environment for arXiv paper ingestion")
-    return run_setup_environment()
+    result = run_setup_environment()
+    logger.debug(f"[setup-environment] completed with result: {result}")
+    return result
 
 
 @task(name="fetch-daily-papers", retries=2, retry_delay_seconds=1800)
 def fetch_daily_papers_task():
     logger = get_run_logger()
     yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y%m%d")
+    logger.debug(f"[fetch-daily-papers] task started, target_date={yesterday}")
     logger.info(f"Fetching papers for date: {yesterday}")
-    return run_fetch_daily_papers(target_date=yesterday)
+    result = run_fetch_daily_papers(target_date=yesterday)
+    logger.debug(f"[fetch-daily-papers] completed: {result}")
+    return result
 
 
 @task(name="index-papers-hybrid", retries=1, retry_delay_seconds=300)
 def index_papers_hybrid_task(fetch_results: dict):
     logger = get_run_logger()
+    logger.debug(f"[index-papers-hybrid] task started with fetch_results keys: {list(fetch_results.keys()) if isinstance(fetch_results, dict) else fetch_results}")
     logger.info(f"Indexing papers: {fetch_results.get('papers_stored', 0)} stored")
-    return run_index_papers_hybrid(fetch_results)
+    result = run_index_papers_hybrid(fetch_results)
+    logger.debug(f"[index-papers-hybrid] completed: {result}")
+    return result
 
 
 @task(name="generate-daily-report")
 def generate_daily_report_task(fetch_stats: dict, hybrid_stats: dict):
     logger = get_run_logger()
+    logger.debug(f"[generate-daily-report] task started — fetch_stats={fetch_stats}, hybrid_stats={hybrid_stats}")
     logger.info("Generating daily report")
-    return run_generate_daily_report(fetch_stats, hybrid_stats)
+    result = run_generate_daily_report(fetch_stats, hybrid_stats)
+    logger.debug(f"[generate-daily-report] completed: {result}")
+    return result
 
 
 @task(name="cleanup-temp-files")
 def cleanup_temp_files_task():
     logger = get_run_logger()
+    logger.debug("[cleanup-temp-files] task started")
     logger.info("Cleaning up temp files")
     run_cleanup_temp_files()
+    logger.debug("[cleanup-temp-files] completed")
 
 
 @flow(
