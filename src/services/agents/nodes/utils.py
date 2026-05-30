@@ -46,15 +46,13 @@ def extract_sources_from_tool_messages(messages: List) -> List[SourceItem]:
                 authors_str = authors_matches[i] if i < len(authors_matches) else ""
                 authors = [a.strip() for a in authors_str.split(",") if a.strip()] if authors_str else []
 
-                sources.append(
-                    SourceItem(
-                        arxiv_id=arxiv_id,
-                        title=title,
-                        authors=authors,
-                        url=url,
-                        relevance_score=relevance_score,
-                    )
-                )
+                sources.append(SourceItem(
+                    arxiv_id=arxiv_id,
+                    title=title,
+                    authors=authors,
+                    url=url,
+                    relevance_score=relevance_score,
+                ))
 
     logger.debug(f"Extracted {len(sources)} sources from tool messages")
     return sources

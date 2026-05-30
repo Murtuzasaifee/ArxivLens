@@ -23,14 +23,14 @@ async def ask_question(
 
     Args:
         query: Research question about CS, AI, or ML papers
-        model: Optional OpenAI model override (default: gpt-4o-mini)
+        model: Optional OpenAI model override (default: openai/gpt-5.4-mini)
 
     Returns:
         dict with keys: query, answer, sources, reasoning_steps,
         retrieval_attempts, rewritten_query, execution_time, guardrail_score,
         trace_id (pass to submit_feedback to rate this response)
     """
-    with logfire.span("mcp:ask_question", query=query[:120], model=model or "gpt-4o-mini"):
+    with logfire.span("mcp:ask_question", query=query[:120], model=model or "openai/gpt-5.4-mini"):
         ctx = get_mcp_context()
 
         result = await ctx.agentic_rag_service.ask(
