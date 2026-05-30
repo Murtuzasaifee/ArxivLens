@@ -1,10 +1,3 @@
-ifneq (,$(wildcard .env))
-    include .env
-    export
-endif
-
-ORCHESTRATOR ?= airflow
-
 .PHONY: help start stop restart status logs health setup format lint test test-cov clean
 
 # Default target
@@ -14,30 +7,26 @@ help: ## Show this help message
 
 # Service management
 start: ## Start all services
-	docker compose --profile $(ORCHESTRATOR) up --build -d
+	docker compose up --build -d
 
 stop: ## Stop all services
-	docker compose --profile airflow --profile prefect down
+	docker compose down
 
 restart: ## Restart all services
-	docker compose --profile $(ORCHESTRATOR) restart
+	docker compose restart
 
 status: ## Show service status
 	docker compose ps
 
 logs: ## Show service logs
-	docker compose --profile $(ORCHESTRATOR) logs -f
+	docker compose logs -f
 
 # Health checks
 health: ## Check all services health
 	@echo "Checking service health..."
 	@curl -s http://localhost:8000/health | jq . || echo "API not responding"
 	@curl -s http://localhost:9200/_cluster/health | jq . || echo "OpenSearch not responding"
-	@if [ "$(ORCHESTRATOR)" = "airflow" ]; then \
-		curl -s http://localhost:8080/api/v2/monitor/health || echo "Airflow not responding"; \
-	elif [ "$(ORCHESTRATOR)" = "prefect" ]; then \
-		curl -s http://localhost:4200/api/health | jq . || echo "Prefect not responding"; \
-	fi
+	@curl -s http://localhost:8080/api/v2/monitor/health || echo "Airflow not responding"
 	@curl -s http://localhost:11434/api/version | jq . || echo "Ollama not responding"
 
 # Development
@@ -59,5 +48,5 @@ test-cov: ## Run tests with coverage
 
 # Cleanup
 clean: ## Clean up everything
-	docker compose --profile airflow --profile prefect down -v
+	docker compose down -v
 	docker system prune -f

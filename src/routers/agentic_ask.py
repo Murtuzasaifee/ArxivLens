@@ -52,6 +52,8 @@ async def ask_agentic(
             retrieval_attempts=result.get("retrieval_attempts", 0),
             rewritten_query=result.get("rewritten_query"),
             trace_id=result.get("trace_id"),
+            guardrail_filter=result.get("guardrail_filter"),
+            output_guardrail_filter=result.get("output_guardrail_filter"),
         )
 
     except ValueError as e:
@@ -83,7 +85,10 @@ async def submit_feedback(
     """
     try:
         if not langfuse_tracer:
-            raise HTTPException(status_code=503, detail="Langfuse tracing is disabled. Cannot submit feedback.")
+            raise HTTPException(
+                status_code=503,
+                detail="Langfuse tracing is disabled. Cannot submit feedback."
+            )
 
         success = langfuse_tracer.submit_feedback(
             trace_id=request.trace_id,
@@ -95,11 +100,20 @@ async def submit_feedback(
             # Flush to ensure feedback is sent immediately
             langfuse_tracer.flush()
 
-            return FeedbackResponse(success=True, message="Feedback recorded successfully")
+            return FeedbackResponse(
+                success=True,
+                message="Feedback recorded successfully"
+            )
         else:
-            raise HTTPException(status_code=500, detail="Failed to submit feedback to Langfuse")
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to submit feedback to Langfuse"
+            )
 
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error submitting feedback: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error submitting feedback: {str(e)}"
+        )

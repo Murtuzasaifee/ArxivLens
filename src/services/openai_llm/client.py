@@ -61,11 +61,16 @@ class OpenAILLMClient:
         self,
         query: str,
         chunks: List[Dict[str, Any]],
+<<<<<<< Updated upstream
+        model: Optional[str] = None,
+=======
         model: str = "openai/gpt-5.4-mini",
+>>>>>>> Stashed changes
         **kwargs,
     ) -> Dict[str, Any]:
         """Generate a RAG answer using retrieved chunks via OpenAI chat completions."""
         try:
+            model = model or "gpt-4o-mini"
             prompt = self.prompt_builder.create_rag_prompt(query, chunks)
             client = self._get_async_client()
 
@@ -126,10 +131,15 @@ class OpenAILLMClient:
         self,
         query: str,
         chunks: List[Dict[str, Any]],
+<<<<<<< Updated upstream
+        model: Optional[str] = None,
+=======
         model: str = "openai/gpt-5.4-mini",
+>>>>>>> Stashed changes
     ):
         """Stream a RAG answer using OpenAI streaming chat completions."""
         try:
+            model = model or "gpt-4o-mini"
             prompt = self.prompt_builder.create_rag_prompt(query, chunks)
             client = self._get_async_client()
 
