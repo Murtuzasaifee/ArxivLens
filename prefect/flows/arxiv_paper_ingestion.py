@@ -40,26 +40,43 @@ def _get_cached_services() -> Tuple[Any, Any, Any, Any, Any]:
 
 
 async def _run_paper_ingestion_pipeline(target_date: str, process_pdfs: bool = True) -> dict:
-    """Fetch most recent papers from arXiv — sorted by submittedDate descending.
+    """Fetch most recent papers from arXiv using keyword query (mirrors Airflow DAG).
 
-    arXiv export API bracket range queries (submittedDate:[X+TO+Y]) return empty
-    results reliably. We fetch the latest max_results papers instead; DB deduplication
-    ensures already-stored papers are skipped.
+    arXiv export API sortBy=submittedDate on broad category queries returns empty
+    results unreliably. Use fetch_papers_with_query with sortBy=relevance instead,
+    which is the same approach used by the Airflow DAG (confirmed working).
     """
     arxiv_client, _, database, metadata_fetcher, _ = _get_cached_services()
 
     max_results = arxiv_client.max_results
-    logger.info(f"Fetching {max_results} most recent papers from cat:{arxiv_client.search_category} (run_date={target_date})")
+    search_query = f"cat:{arxiv_client.search_category}"
+    logger.info(f"Fetching top {max_results} papers via query '{search_query}' (run_date={target_date})")
 
-    with database.get_session() as session:
-        return await metadata_fetcher.fetch_and_process_papers(
+    # Monkey-patch fetch_papers to use fetch_papers_with_query with sortBy=relevance.
+    # Mirrors the Airflow DAG approach exactly; restored in finally block.
+    original_fetch_papers = arxiv_client.fetch_papers
+
+    async def _patched_fetch(*args, **kwargs):
+        return await arxiv_client.fetch_papers_with_query(
+            search_query=search_query,
             max_results=max_results,
-            from_date=None,
-            to_date=None,
-            process_pdfs=process_pdfs,
-            store_to_db=True,
-            db_session=session,
+            sort_by="relevance",
+            sort_order="descending",
         )
+
+    arxiv_client.fetch_papers = _patched_fetch
+    try:
+        with database.get_session() as session:
+            return await metadata_fetcher.fetch_and_process_papers(
+                max_results=max_results,
+                from_date=None,
+                to_date=None,
+                process_pdfs=process_pdfs,
+                store_to_db=True,
+                db_session=session,
+            )
+    finally:
+        arxiv_client.fetch_papers = original_fetch_papers
 
 
 async def _index_papers_with_chunks(papers) -> dict:

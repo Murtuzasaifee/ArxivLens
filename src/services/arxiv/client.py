@@ -79,60 +79,46 @@ class ArxivClient:
         if max_results is None:
             max_results = self.max_results
 
+        # cat: prefix targets the category field specifically.
+        # sortBy/sortOrder params are omitted — arXiv CDN caches unsorted queries;
+        # sorted queries bypass cache and trigger aggressive 429 rate limiting.
         search_query = f"cat:{self.search_category}"
-
-        # arXiv bracket range syntax ([YYYYMMDD+TO+YYYYMMDD]) is unreliable via the
-        # export API — returns empty results. Date filtering is done post-fetch by the
-        # caller if needed. Recency is guaranteed by sortBy=submittedDate descending.
-        if from_date or to_date:
-            logger.warning(
-                "from_date/to_date ignored — arXiv export API bracket range queries "
-                "return empty results. Fetching most recent papers instead."
-            )
-
         params = {
             "search_query": search_query,
             "start": start,
             "max_results": min(max_results, 2000),
-            "sortBy": sort_by,
-            "sortOrder": sort_order,
         }
 
         safe = ":+[]*"
         url = f"{self.base_url}?{urlencode(params, quote_via=quote, safe=safe)}"
+        headers = {"User-Agent": "ArxivLens/1.0 (research tool)"}
 
-        # Retry loop with exponential backoff for 429 rate limits
         max_retries = 3
-        base_wait = 5
-
         for attempt in range(max_retries):
             try:
-                logger.info(f"Fetching {max_results} {self.search_category} papers from arXiv (attempt {attempt + 1}/{max_retries})")
+                logger.info(f"Fetching {max_results} cat:{self.search_category} papers (attempt {attempt + 1}/{max_retries}): {url}")
 
-                # Add rate limiting delay between all requests (arXiv recommends 3 seconds)
                 if self._last_request_time is not None:
                     time_since_last = time.time() - self._last_request_time
                     if time_since_last < self.rate_limit_delay:
-                        sleep_time = self.rate_limit_delay - time_since_last
-                        await asyncio.sleep(sleep_time)
+                        await asyncio.sleep(self.rate_limit_delay - time_since_last)
 
                 self._last_request_time = time.time()
 
-                async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
+                async with httpx.AsyncClient(timeout=self.timeout_seconds, headers=headers) as client:
                     response = await client.get(url)
                     response.raise_for_status()
                     xml_data = response.text
 
                 papers = self._parse_response(xml_data)
                 logger.info(f"Fetched {len(papers)} papers")
-
                 return papers
 
             except httpx.HTTPStatusError as e:
                 status_code = e.response.status_code
                 if status_code in (429, 503) and attempt < max_retries - 1:
-                    wait_time = base_wait * (2 ** attempt)
-                    logger.warning(f"arXiv API returned {status_code}. Waiting {wait_time}s before retry {attempt + 2}/{max_retries}...")
+                    wait_time = 60 * (2 ** attempt)  # 60s, 120s
+                    logger.warning(f"arXiv {status_code} (rate limited). Waiting {wait_time}s before retry {attempt + 2}/{max_retries}...")
                     await asyncio.sleep(wait_time)
                     continue
                 logger.error(f"arXiv API HTTP error: {e}")
@@ -144,7 +130,6 @@ class ArxivClient:
                 logger.error(f"Failed to fetch papers from arXiv: {e}")
                 raise ArxivAPIException(f"Unexpected error fetching papers from arXiv: {e}")
 
-        # Should never reach here, but satisfy type checker
         return []
 
     async def fetch_papers_with_query(
@@ -181,47 +166,44 @@ class ArxivClient:
         if max_results is None:
             max_results = self.max_results
 
+        # sortBy/sortOrder omitted — arXiv CDN caches unsorted queries; sorted queries
+        # bypass cache and trigger aggressive 429 rate limiting.
         params = {
             "search_query": search_query,
             "start": start,
             "max_results": min(max_results, 2000),
-            "sortBy": sort_by,
-            "sortOrder": sort_order,
         }
 
-        safe = ":+[]*"  # Don't encode :, +, [, ], *, characters needed for arXiv queries
+        safe = ":+[]*"
         url = f"{self.base_url}?{urlencode(params, quote_via=quote, safe=safe)}"
+        headers = {"User-Agent": "ArxivLens/1.0 (research tool)"}
 
-        # Retry loop with exponential backoff for 429 rate limits
         max_retries = 3
-        base_wait = 5
-
         for attempt in range(max_retries):
             try:
-                # Add rate limiting delay between all requests (arXiv recommends 3 seconds)
+                logger.info(f"Query attempt {attempt + 1}/{max_retries}: {url}")
+
                 if self._last_request_time is not None:
                     time_since_last = time.time() - self._last_request_time
                     if time_since_last < self.rate_limit_delay:
-                        sleep_time = self.rate_limit_delay - time_since_last
-                        await asyncio.sleep(sleep_time)
+                        await asyncio.sleep(self.rate_limit_delay - time_since_last)
 
                 self._last_request_time = time.time()
 
-                async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
+                async with httpx.AsyncClient(timeout=self.timeout_seconds, headers=headers) as client:
                     response = await client.get(url)
                     response.raise_for_status()
                     xml_data = response.text
 
                 papers = self._parse_response(xml_data)
                 logger.info(f"Query returned {len(papers)} papers")
-
                 return papers
 
             except httpx.HTTPStatusError as e:
                 status_code = e.response.status_code
                 if status_code in (429, 503) and attempt < max_retries - 1:
-                    wait_time = base_wait * (2 ** attempt)
-                    logger.warning(f"arXiv API returned {status_code}. Waiting {wait_time}s before retry {attempt + 2}/{max_retries}...")
+                    wait_time = 60 * (2 ** attempt)  # 60s, 120s
+                    logger.warning(f"arXiv {status_code} (rate limited). Waiting {wait_time}s before retry {attempt + 2}/{max_retries}...")
                     await asyncio.sleep(wait_time)
                     continue
                 logger.error(f"arXiv API HTTP error: {e}")
@@ -233,7 +215,6 @@ class ArxivClient:
                 logger.error(f"Failed to fetch papers from arXiv: {e}")
                 raise ArxivAPIException(f"Unexpected error fetching papers from arXiv: {e}")
 
-        # Should never reach here, but satisfy type checker
         return []
 
     async def fetch_paper_by_id(self, arxiv_id: str) -> Optional[ArxivPaper]:
