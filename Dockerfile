@@ -32,6 +32,14 @@ ENV APP_VERSION=$VERSION
 
 WORKDIR /app
 
+# Install runtime system dependencies for Docling PDF parsing
+# Docling's poppler bindings require X11 client libraries at runtime
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libxcb1 \
+    libx11-6 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copy the virtual environment from the base stage
 COPY --from=base /app /app
 
