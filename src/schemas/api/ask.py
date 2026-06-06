@@ -18,7 +18,6 @@ class AskRequest(BaseModel):
                 "query": "What are transformers in machine learning?",
                 "top_k": 3,
                 "use_hybrid": True,
-                "model": "openai/gpt-5.4-mini",
                 "categories": ["cs.AI", "cs.LG"],
             }
         }

@@ -212,6 +212,7 @@ class Settings(BaseConfigSettings):
     openai_api_key: str = ""
     openai_model: str = "openai/gpt-5.4-mini"
     openai_timeout: int = 300
+    openai_base_url: Optional[str] = None
 
     # LLM provider: "openai" or "bedrock"
     provider: str = "openai"
