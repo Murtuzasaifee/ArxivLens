@@ -53,6 +53,10 @@ class ArxivClient:
     def search_category(self) -> str:
         return self._settings.search_category
 
+    @property
+    def headers(self) -> dict:
+        return {"User-Agent": self._settings.user_agent}
+
     async def fetch_papers(
         self,
         max_results: Optional[int] = None,
@@ -91,7 +95,7 @@ class ArxivClient:
 
         safe = ":+[]*"
         url = f"{self.base_url}?{urlencode(params, quote_via=quote, safe=safe)}"
-        headers = {"User-Agent": "ArxivLens/1.0 (research tool)"}
+        headers = self.headers
 
         max_retries = 3
         for attempt in range(max_retries):
@@ -176,7 +180,7 @@ class ArxivClient:
 
         safe = ":+[]*"
         url = f"{self.base_url}?{urlencode(params, quote_via=quote, safe=safe)}"
-        headers = {"User-Agent": "ArxivLens/1.0 (research tool)"}
+        headers = self.headers
 
         max_retries = 3
         for attempt in range(max_retries):
@@ -235,7 +239,7 @@ class ArxivClient:
         url = f"{self.base_url}?{urlencode(params, quote_via=quote, safe=safe)}"
 
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=self.timeout_seconds, headers=self.headers) as client:
                 response = await client.get(url)
                 response.raise_for_status()
                 xml_data = response.text
@@ -464,7 +468,7 @@ class ArxivClient:
 
         for attempt in range(max_retries):
             try:
-                async with httpx.AsyncClient(timeout=float(self.timeout_seconds)) as client:
+                async with httpx.AsyncClient(timeout=float(self.timeout_seconds), headers=self.headers) as client:
                     async with client.stream("GET", url) as response:
                         response.raise_for_status()
                         with open(path, "wb") as f:

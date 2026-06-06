@@ -36,8 +36,9 @@ class ArxivSettings(BaseConfigSettings):
     search_category: str = "cs.AI"
     download_max_retries: int = 3
     download_retry_delay_base: float = 5.0
-    max_concurrent_downloads: int = 5
+    max_concurrent_downloads: int = 1
     max_concurrent_parsing: int = 1
+    user_agent: str = "ArxivLens/1.0 (contact@example.com)"
 
     namespaces: dict = {
         "atom": "http://www.w3.org/2005/Atom",
