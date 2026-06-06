@@ -1,4 +1,11 @@
-.PHONY: help start stop restart status logs health setup format lint test test-cov clean
+ifneq (,$(wildcard .env))
+    include .env
+    export
+endif
+
+ORCHESTRATOR ?= airflow
+
+.PHONY: help start stop restart status logs logs-prefect logs-airflow health setup format lint test test-cov clean
 
 # Default target
 help: ## Show this help message
@@ -6,28 +13,37 @@ help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
 # Service management
-start: ## Start all services
-	docker compose up --build -d
+start: ## Start all services (ORCHESTRATOR=airflow|prefect, default: airflow)
+	docker compose --profile $(ORCHESTRATOR) up --build -d
 
 stop: ## Stop all services
-	docker compose down
+	docker compose --profile airflow --profile prefect down
 
 restart: ## Restart all services
-	docker compose restart
+	docker compose --profile $(ORCHESTRATOR) restart
 
 status: ## Show service status
 	docker compose ps
 
-logs: ## Show service logs
-	docker compose logs -f
+logs: ## Show logs for active orchestrator profile
+	docker compose --profile $(ORCHESTRATOR) logs -f
+
+logs-prefect: ## Show Prefect server + worker logs
+	docker compose logs -f prefect-server prefect-worker
+
+logs-airflow: ## Show Airflow logs
+	docker compose logs -f airflow
 
 # Health checks
 health: ## Check all services health
 	@echo "Checking service health..."
 	@curl -s http://localhost:8000/health | jq . || echo "API not responding"
 	@curl -s http://localhost:9200/_cluster/health | jq . || echo "OpenSearch not responding"
-	@curl -s http://localhost:8080/api/v2/monitor/health || echo "Airflow not responding"
-	@curl -s http://localhost:11434/api/version | jq . || echo "Ollama not responding"
+	@if [ "$(ORCHESTRATOR)" = "airflow" ]; then \
+		curl -s http://localhost:8080/health || echo "Airflow not responding"; \
+	elif [ "$(ORCHESTRATOR)" = "prefect" ]; then \
+		curl -s http://localhost:4200/api/health | jq . || echo "Prefect server not responding"; \
+	fi
 
 # Development
 setup: ## Install Python dependencies
@@ -48,5 +64,5 @@ test-cov: ## Run tests with coverage
 
 # Cleanup
 clean: ## Clean up everything
-	docker compose down -v
+	docker compose --profile airflow --profile prefect down -v
 	docker system prune -f

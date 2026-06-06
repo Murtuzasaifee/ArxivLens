@@ -34,6 +34,7 @@ WORKDIR /app
 # Copy the virtual environment and source code from base
 COPY --from=base /app /app
 COPY prefect/flows/ /app/flows/
+COPY src/ /app/src/
 
 # Add virtual environment to PATH
 ENV PATH="/app/.venv/bin:$PATH"

@@ -79,16 +79,16 @@ class ArxivClient:
         if max_results is None:
             max_results = self.max_results
 
-        # Build search query
         search_query = f"cat:{self.search_category}"
 
-        # Add date filtering if provided
+        # arXiv bracket range syntax ([YYYYMMDD+TO+YYYYMMDD]) is unreliable via the
+        # export API — returns empty results. Date filtering is done post-fetch by the
+        # caller if needed. Recency is guaranteed by sortBy=submittedDate descending.
         if from_date or to_date:
-            # Convert dates to arXiv format (YYYYMMDDHHMM) - use 0000 for start of day, 2359 for end
-            date_from = f"{from_date}0000" if from_date else "*"
-            date_to = f"{to_date}2359" if to_date else "*"
-            # Use correct arXiv API syntax with + symbols
-            search_query += f" AND submittedDate:[{date_from}+TO+{date_to}]"
+            logger.warning(
+                "from_date/to_date ignored — arXiv export API bracket range queries "
+                "return empty results. Fetching most recent papers instead."
+            )
 
         params = {
             "search_query": search_query,
@@ -98,7 +98,7 @@ class ArxivClient:
             "sortOrder": sort_order,
         }
 
-        safe = ":+[]"  # Don't encode :, +, [, ] characters needed for arXiv queries
+        safe = ":+[]*"
         url = f"{self.base_url}?{urlencode(params, quote_via=quote, safe=safe)}"
 
         # Retry loop with exponential backoff for 429 rate limits
