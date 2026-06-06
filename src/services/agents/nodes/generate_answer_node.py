@@ -2,6 +2,8 @@ import logging
 import time
 from typing import Dict, List
 
+import logfire
+
 from langchain_core.messages import AIMessage
 from langgraph.runtime import Runtime
 
@@ -13,6 +15,7 @@ from .utils import get_latest_context, get_latest_query
 logger = logging.getLogger(__name__)
 
 
+@logfire.instrument("node:generate_answer", extract_args=False)
 async def ainvoke_generate_answer_step(
     state: AgentState,
     runtime: Runtime[Context],
@@ -30,7 +33,7 @@ async def ainvoke_generate_answer_step(
     start_time = time.time()
 
     # Get question and context
-    question = get_latest_query(state["messages"])
+    question = state.get("sanitized_query") or get_latest_query(state["messages"])
     context = get_latest_context(state["messages"])
 
     # Count sources from relevant_sources
@@ -90,7 +93,7 @@ async def ainvoke_generate_answer_step(
         response = await llm.ainvoke(answer_prompt)
 
         # Extract content from response
-        answer = response.content if hasattr(response, "content") else str(response)
+        answer = response.content if hasattr(response, 'content') else str(response)
         logger.info(f"Generated answer of length: {len(answer)} characters")
 
         # Update span with successful result

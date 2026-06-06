@@ -10,7 +10,9 @@ COPY pyproject.toml uv.lock ./
 # since the cache and sync target are on separate file systems.
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 
-# Install dependencies
+# Install dependencies.
+# uv.lock is configured to resolve CPU-only torch wheels from PyTorch's CPU index,
+# so no CUDA/NVIDIA libraries are pulled in (~2GB saved vs default PyPI CUDA wheels).
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=/app/uv.lock \
     --mount=type=bind,source=pyproject.toml,target=/app/pyproject.toml \
@@ -29,6 +31,14 @@ ARG VERSION=0.1.0
 ENV APP_VERSION=$VERSION
 
 WORKDIR /app
+
+# Install runtime system dependencies for Docling PDF parsing
+# Docling's poppler bindings require X11 client libraries at runtime
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libxcb1 \
+    libx11-6 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy the virtual environment from the base stage
 COPY --from=base /app /app

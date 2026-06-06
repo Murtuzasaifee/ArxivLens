@@ -1,11 +1,10 @@
 """Quick connectivity check for all external APIs."""
 
-import asyncio
-import socket
-import sys
-from pathlib import Path
-
 from openai.types import completion_usage
+import asyncio
+import sys
+import socket
+from pathlib import Path
 
 # Allow running from project root
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -15,7 +14,6 @@ from src.config import get_settings
 
 async def check_openai(settings):
     from openai import AsyncOpenAI
-
     kwargs = {"api_key": settings.openai_api_key, "timeout": 10}
     if getattr(settings, "openai_base_url", None):
         kwargs["base_url"] = settings.openai_base_url
@@ -27,14 +25,13 @@ async def check_openai(settings):
             {"role": "user", "content": "Hello, how are you?"},
         ],
     )
-    return f"OK — {test_response}"
+    return f"OK — {test_response}"   
+   
 
 
 async def check_postgres(settings):
     import asyncio
-
     from sqlalchemy import create_engine, text
-
     engine = create_engine(settings.postgres_database_url, pool_pre_ping=True, connect_args={"connect_timeout": 10})
     with engine.connect() as conn:
         result = conn.execute(text("SELECT version()")).scalar()
@@ -44,7 +41,6 @@ async def check_postgres(settings):
 
 async def check_redis(settings):
     import redis as redis_lib
-
     client = redis_lib.from_url(settings.redis.url, decode_responses=True, socket_connect_timeout=10)
     pong = client.ping()
     info = client.info("server")
@@ -55,7 +51,6 @@ async def check_redis(settings):
 
 async def check_langfuse(settings):
     import httpx
-
     url = f"{settings.langfuse.host}/api/public/health"
     async with httpx.AsyncClient(timeout=10) as client:
         r = await client.get(url)
@@ -65,7 +60,6 @@ async def check_langfuse(settings):
 
 async def check_jina(settings):
     import httpx
-
     headers = {"Authorization": f"Bearer {settings.jina_api_key}", "Content-Type": "application/json"}
     payload = {"model": "jina-embeddings-v3", "input": ["hello world"], "dimensions": 1024}
     async with httpx.AsyncClient(timeout=15) as client:
@@ -90,11 +84,11 @@ def check_postgres_ipv4(settings):
 async def main():
     settings = get_settings()
     checks = [
-        ("OpenAI API", check_openai(settings)),
+        ("OpenAI API",   check_openai(settings)),
         ("Neon Postgres", check_postgres(settings)),
         ("Upstash Redis", check_redis(settings)),
         ("Langfuse Cloud", check_langfuse(settings)),
-        ("Jina AI", check_jina(settings)),
+        ("Jina AI",       check_jina(settings)),
     ]
 
     print("\n── API Connectivity Check ─────────────────────────────────────")

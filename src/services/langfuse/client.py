@@ -176,7 +176,7 @@ class LangfuseTracer:
             return False
 
         try:
-            self.client.score(
+            self.client.create_score(
                 trace_id=trace_id,
                 name=name,
                 value=score,
@@ -292,7 +292,7 @@ class LangfuseTracer:
 
         Args:
             name: Name for this generation (e.g., "decision_llm", "grading_llm")
-            model: Model identifier (e.g., "llama3.2:1b", "gpt-4o")
+            model: Model identifier (e.g., "llama3.2:1b", "openai/gpt-5.4")
             input_data: Input to the LLM (prompt or messages)
             metadata: Additional metadata (temperature, max_tokens, etc.)
 

@@ -32,6 +32,8 @@ RUN apt-get update && \
     tesseract-ocr \
     libgl1 \
     libglib2.0-0 \
+    libxcb1 \
+    libx11-6 \
     && rm -rf /var/lib/apt/lists/*
 
 # ── airflow user ──────────────────────────────────────────────────────────────
@@ -65,6 +67,20 @@ COPY requirements-airflow.txt /tmp/requirements-airflow.txt
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system \
     -r /tmp/requirements-airflow.txt
+
+# ── application source ────────────────────────────────────────────────────────
+# In Docker Compose, src/ is bind-mounted at runtime (./src:/opt/airflow/src).
+# In Kubernetes, bind mounts from the host are not available — source code must
+# be baked into the image at build time.
+#
+# The CD pipeline builds this image with the REPO ROOT as the build context:
+#   docker build -f airflow/Dockerfile .
+# This allows COPY src to find the src/ directory from the repo root.
+#
+# DAG files are also copied here as a fallback; the primary source in K8s is
+# the airflow-dags ConfigMap (mounted at /opt/airflow/dags by the Deployment).
+COPY src /opt/airflow/src
+COPY airflow/dags /opt/airflow/dags
 
 # ── entrypoint ────────────────────────────────────────────────────────────────
 COPY entrypoint.sh /entrypoint.sh
