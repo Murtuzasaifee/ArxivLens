@@ -186,6 +186,14 @@ telemetryServices:
 | Windows metrics enabled | Disabled — EKS nodes are Linux |
 | Fleet Management (`remoteConfig`) | Removed — not needed for basic setup |
 
+### Critical: How to Pass the Token
+
+`values.yaml` is processed by Helm as a static file. **Helm does NOT expand shell environment variables** (e.g. `password: "${GRAFANA_CLOUD_TOKEN}"` is stored as the literal string `${GRAFANA_CLOUD_TOKEN}`, which causes `401 Unauthorized`).
+
+**Option A (recommended):** Keep `values.yaml` with placeholder passwords and pass the real token via `--set-string` in the Helm command (see Step 5).
+
+**Option B:** Hard-code the token directly in `values.yaml` and do NOT use `--set-string` — but remember this file is listed in `.gitignore` for a reason; never commit it.
+
 ---
 
 ## 5. Deploy the Helm Chart
@@ -199,14 +207,14 @@ helm repo update
 
 # Install the chart
 helm upgrade --install \
-  --atomic \
-  --timeout 300s \
-  grafana-k8s-monitoring \
-  grafana/k8s-monitoring \
-  --version "^4" \
-  --namespace "monitoring" \
-  --create-namespace \
-  --values deployment/grafana/values.yaml
+       grafana-k8s-monitoring \
+       grafana/k8s-monitoring \
+       --version "^4" \
+       --namespace "monitoring" \
+       --create-namespace \
+       --values deployment/grafana/values.yaml \
+       --set-string destinations.grafana-cloud-metrics.auth.password="$GRAFANA_CLOUD_TOKEN" \
+       --set-string destinations.grafana-cloud-logs.auth.password="$GRAFANA_CLOUD_TOKEN"
 ```
 
 **What happens:**
@@ -461,6 +469,26 @@ kubectl logs -n monitoring statefulset/grafana-k8s-monitoring-alloy-metrics --ta
 kubectl exec -n monitoring statefulset/grafana-k8s-monitoring-alloy-metrics -- \
   wget -qO- https://prometheus-prod-XX.grafana.net/api/prom/push
 ```
+
+### 401 Unauthorized after Helm upgrade or token rotation
+
+**Symptom:** `kubectl logs` shows repeated `401 Unauthorized: authentication error: invalid token` even though you passed `--set-string` with the correct token.
+
+**Root cause:** The Helm chart stores the token in a Kubernetes Secret. When you re-run `helm upgrade`, the Secret is updated, but **running pods do NOT automatically reload Secrets** — they cache the old token in memory.
+
+**Fix:** Restart the Alloy metrics StatefulSet so it mounts the updated Secret:
+
+```bash
+kubectl rollout restart statefulset/grafana-k8s-monitoring-alloy-metrics -n monitoring
+```
+
+Wait 15-20 seconds, then verify:
+
+```bash
+kubectl logs -n monitoring statefulset/grafana-k8s-monitoring-alloy-metrics --tail=20 | grep "Done replaying WAL"
+```
+
+You should see successful pushes without 401 errors.
 
 ### Alloy logs pod crashing
 

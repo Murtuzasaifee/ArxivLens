@@ -86,10 +86,8 @@ spec:
 
       containers:
         - name: rag-api
-          # Image is replaced at deploy time by cd.yml using sed:
-          #   sed -i "s|image: REPLACE_...|image: ECR_URI:SHA|g" deployment.yaml
-          # The full URI format: ACCOUNT.dkr.ecr.REGION.amazonaws.com/agentic-rag/api:SHA
-          image: REPLACE_WITH_ECR_URI/agentic-rag/api:latest
+          image: 685057748560.dkr.ecr.us-east-1.amazonaws.com/agentic-rag/api:manual
+          imagePullPolicy: Always
           ports:
             - name: http
               containerPort: 8000
@@ -112,10 +110,10 @@ spec:
 
           resources:
             requests:
-              memory: "1Gi"    # uvicorn + LangGraph + boto3 baseline
+              memory: "6Gi"    # uvicorn + LangGraph + boto3 baseline
               cpu: "500m"      # 0.5 CPU cores guaranteed
             limits:
-              memory: "4Gi"    # PyTorch + LangGraph peaks at ~3.2GB; 4Gi prevents OOMKill
+              memory: "8Gi"    # PyTorch + LangGraph peaks at ~3.2GB; 8Gi prevents OOMKill under load
               cpu: "2000m"     # 2 CPU cores max (Bedrock calls are CPU-light but async)
 
           # ── Health Checks ─────────────────────────────────────────────────
