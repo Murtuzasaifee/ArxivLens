@@ -13,7 +13,7 @@ from typing import List, Tuple
 import httpx
 
 # EKS LoadBalancer URL
-BASE_URL = "http://ae18980d895d74b308f007e777bc185a-1762723266.us-east-1.elb.amazonaws.com"
+BASE_URL = "http://a797adfaeb8f54abca6a1f2f6faf7e45-1378576617.us-east-1.elb.amazonaws.com"
 ENDPOINT = f"{BASE_URL}/api/v1/ask-agentic"
 
 # Test configuration

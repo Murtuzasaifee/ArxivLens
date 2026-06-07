@@ -16,7 +16,7 @@ class RAGApiUser(HttpUser):
     """Simulates a user asking questions to the RAG API."""
 
     # Target the EKS LoadBalancer URL
-    host = "http://ae18980d895d74b308f007e777bc185a-1762723266.us-east-1.elb.amazonaws.com"
+    host = "http://a797adfaeb8f54abca6a1f2f6faf7e45-1378576617.us-east-1.elb.amazonaws.com"
 
     # No wait between requests — maximum throughput
     wait_time = between(0, 0)

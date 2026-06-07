@@ -5,7 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 import urllib.request
 import json
 
-API_URL = "http://ae18980d895d74b308f007e777bc185a-1762723266.us-east-1.elb.amazonaws.com/api/v1/ask-agentic"
+API_URL = "http://a797adfaeb8f54abca6a1f2f6faf7e45-1378576617.us-east-1.elb.amazonaws.com/api/v1/ask-agentic"
 HEADERS = {"Content-Type": "application/json"}
 PAYLOAD = json.dumps({
     "query": "What is attention mechanism in deep learning?",

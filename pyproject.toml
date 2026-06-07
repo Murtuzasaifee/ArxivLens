@@ -34,6 +34,7 @@ dependencies = [
     # CPU-only torch to avoid ~2GB CUDA bloat in Docker images
     "torch>=2.0.0",
     "torchvision>=0.15.0",
+    "locust>=2.44.1",
 ]
 readme = "README.md"
 
