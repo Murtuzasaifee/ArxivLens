@@ -282,14 +282,14 @@ jobs:
       - name: Set API image in deployment manifest
         run: |
           API_IMAGE="${{ needs.build-and-push.outputs.api-image }}"
-          sed -i "s|image: REPLACE_WITH_ECR_URI/agentic-rag/api:latest|image: ${API_IMAGE}|g" \
+          sed -i "s|image: 958614257254.dkr.ecr.us-east-1.amazonaws.com/agentic-rag/api:latest|image: ${API_IMAGE}|g" \
             deployment/k8s/api/deployment.yaml
           echo "API deployment image set to: ${API_IMAGE}"
 
       - name: Set Airflow image in deployment manifest
         run: |
           AIRFLOW_IMAGE="${{ needs.build-and-push.outputs.airflow-image }}"
-          sed -i "s|image: REPLACE_WITH_ECR_URI/agentic-rag/airflow:latest|image: ${AIRFLOW_IMAGE}|g" \
+          sed -i "s|image: 958614257254.dkr.ecr.us-east-1.amazonaws.com/agentic-rag/airflow:latest|image: ${AIRFLOW_IMAGE}|g" \
             deployment/k8s/airflow/deployment.yaml
           echo "Airflow deployment image set to: ${AIRFLOW_IMAGE}"
 

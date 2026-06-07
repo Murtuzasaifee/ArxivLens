@@ -4,17 +4,17 @@ cluster:
 destinations:
   grafana-cloud-metrics:
     type: prometheus
-    url: https://prometheus-prod-43-prod-ap-south-1.grafana.net/api/prom/push
+    url: https://prometheus-prod-66-prod-us-east-3.grafana.net/api/prom/push
     auth:
       type: basic
-      username: "3267520"
+      username: "3288776"
       password: "${GRAFANA_CLOUD_TOKEN}"
   grafana-cloud-logs:
     type: loki
-    url: https://logs-prod-028.grafana.net/loki/api/v1/push
+    url: https://logs-prod-042.grafana.net/loki/api/v1/push
     auth:
       type: basic
-      username: "1629435"
+      username: "1640063"
       password: "${GRAFANA_CLOUD_TOKEN}"
 
 clusterMetrics:
@@ -72,6 +72,6 @@ telemetryServices:
       prometheus:
         existingSecretName: grafana-cloud-metrics-grafana-k8s-monitoring
         external:
-          url: https://prometheus-prod-43-prod-ap-south-1.grafana.net/api/prom
+          url: https://prometheus-prod-66-prod-us-east-3.grafana.net/api/prom
   kepler:
     deploy: true
