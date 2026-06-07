@@ -68,7 +68,7 @@ spec:
 
       containers:
         - name: airflow
-          image: 958614257254.dkr.ecr.us-east-1.amazonaws.com/agentic-rag/airflow:manual
+          image: 958614257254.dkr.ecr.us-east-1.amazonaws.com/agentic-rag/airflow:latest
           imagePullPolicy: Always
           ports:
             - name: http

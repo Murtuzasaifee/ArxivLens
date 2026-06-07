@@ -86,7 +86,7 @@ spec:
 
       containers:
         - name: rag-api
-          image: 958614257254.dkr.ecr.us-east-1.amazonaws.com/agentic-rag/api:manual
+          image: 958614257254.dkr.ecr.us-east-1.amazonaws.com/agentic-rag/api:latest
           imagePullPolicy: Always
           ports:
             - name: http
