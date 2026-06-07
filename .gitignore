@@ -181,5 +181,5 @@ test_data/
 ## Custom ignores
 notebooks/
 static/
-workflows/
+/workflows/
 step-by-step.md
